@@ -4,7 +4,7 @@ RUN apk --no-cache add ca-certificates
 
 RUN mkdir /src
 
-COPY team-cost-reporter/ /src/
+COPY team-cost-aggregator/ /src/
 
 WORKDIR /src
 
