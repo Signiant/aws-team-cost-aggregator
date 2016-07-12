@@ -28,15 +28,30 @@ def main(argv):
     parser.add_argument('-d','--debug', help='Enable debug output',action='store_true')
     parser.add_argument('-c','--config', help='Full path to a config file',required=True)
     parser.add_argument('-f','--folder', help='Folder containing the team cost summaries',required=True)
+    parser.add_argument('-r','--rm', help='Remove the data files when processed',action='store_true')
+
     args = parser.parse_args()
 
     configMap = readConfigFile(args.config)
 
     if configMap:
-        print "Outputing results using data in folder %s" % args.folder
+        print "Generating report using data in folder " + args.folder
 
-        # Output the results for the run of each plugin
+        # Output the results
         output.outputResults(args.folder,configMap,args.debug)
+
+        if args.rm:
+            print "Removing all data files from " + args.folder
+            all_team_results_files = os.listdir(args.folder)
+            for team_result_file in all_team_results_files:
+                team_result_fullpath = os.path.join(args.folder,team_result_file)
+
+                # Skip if we have a sub-dir
+                if os.path.isdir(team_result_fullpath):
+                    continue
+                else:
+                    print "Removing " + team_result_fullpath
+                    os.remove(team_result_fullpath)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
