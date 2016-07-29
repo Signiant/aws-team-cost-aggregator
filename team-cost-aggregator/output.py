@@ -28,9 +28,11 @@ def getStartDate(team_data):
 
 def getTotalTeamCost(configMap,plugin_results,debug):
     totalCost = 0.0
+    items_dict = dict()
 
     for plugin_name in plugin_results:
         if debug: log("Processing data for plugin: " + str(plugin_name))
+        items_dict.clear()
 
         if 'individual' in plugin_results[plugin_name]:
             if debug: log("Found individual results for plugin " + str(plugin_name))
