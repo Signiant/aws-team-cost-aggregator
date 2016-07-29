@@ -30,14 +30,20 @@ def getTotalTeamCost(configMap,plugin_results,debug):
     totalCost = 0.0
 
     for plugin_name in plugin_results:
+        if debug: log("Processing data for plugin: " + str(plugin_name))
+
         if 'individual' in plugin_results[plugin_name]:
+            if debug: log("Found individual results for plugin " + str(plugin_name))
             items_dict = plugin_results[plugin_name]['individual']
         elif 'shared' in plugin_results[plugin_name]:
+            if debug: log("Found shared results for plugin " + str(plugin_name))
             items_dict = plugin_results[plugin_name]['shared']
 
         for item in items_dict:
+            if debug: log("Adding " + str(items_dict[item]) + " to total costs for plugin " + str(plugin_name))
             totalCost = totalCost + float(items_dict[item])
 
+    if debug: log("getTotalTeamCost returning " + str(totalCost))
     return totalCost
 
 def getTeamTotals(configMap,folder,debug):
