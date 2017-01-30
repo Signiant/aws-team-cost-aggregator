@@ -50,8 +50,10 @@ def getTotalTeamCost(configMap,plugin_results,debug):
 
 def getTeamTotals(configMap,folder,debug):
     team_costs = dict()
+    team_prev_costs = dict()
     team_period = dict()
     total_cost = 0
+    total_prev_cost = 0
 
     # Get all the results files in the folder
     all_team_results_files = os.listdir(folder)
@@ -73,6 +75,10 @@ def getTeamTotals(configMap,folder,debug):
         if os.path.isdir(team_result_fullpath):
             continue
 
+        # is this a previous run file?  skip it and read the values later
+        if str(team_result_fullpath).endswith(".prev"):
+            continue
+
         log("Reading data from: " + str(team_result_fullpath))
 
         with open(team_result_fullpath) as data_file:
@@ -88,20 +94,49 @@ def getTeamTotals(configMap,folder,debug):
         team_costs[team_name] = team_cost
         team_period[team_name] = getStartDate(team_data) + " - " + getEndDate(team_data)
 
+        # See if we have some previous results so we can show a percent change
+        team_result_prev_fullpath = team_result_fullpath + ".prev"
+        if os.path.exists(team_result_prev_fullpath):
+            print "previous results exist for " + team_name + ".  Reading " + team_result_prev_fullpath
+
+            # read these in the same as the main results and save off the previous report value
+            with open(team_result_prev_fullpath) as prev_file:
+                team_prev_data = json.load(prev_file)
+                if debug: pprint.pprint(team_prev_data)
+                prev_file.close()
+
+            # Now get the total for this team
+            team_prev_cost = getTotalTeamCost(configMap,team_prev_data,debug)
+            if debug: log("Team previous cost is " + str(team_prev_cost))
+
+            # and save it off so we can sort these later
+            team_prev_costs[team_name] = team_prev_cost
+
     # ok, let's output stuff (email only likes inline styles....)
     table = "<table>"
-    table = table + "<tr><th style='padding: 15px;'>Team</th><th style='padding: 15px;'>Period</th><th style='padding: 15px;'>Cost</th></tr>"
+    table = table + "<tr><th style='padding: 15px;'>Team</th><th style='padding: 15px;'>Period</th><th style='padding: 15px;'>Cost</th><th style='padding: 15px;'>Previous</th><th style='padding: 15px;'>% Change</th></tr>"
 
     # We now have a dict of team costs...let's process it (sorted)
     for key, value in sorted(team_costs.iteritems(), key=lambda (k,v): (v,k), reverse=True):
-        table = table + "<tr><td style='padding: 10px;'>" + str(key) + "</td><td style='padding: 10px;'>" + team_period[key] + "</td><td style='padding: 10px;'>$" + str(value) + "</td></tr>"
+        prev_cost = ""
+        percent_change = ""
+
+        if key in team_prev_costs:
+            print "Previous costs found for " + str(key)
+            prev_cost = team_prev_costs[key]
+            percent_change =  (value - prev_cost) /  value * 100
+            percent_change = format(float(percent_change),'.0f')
+
+        table = table + "<tr><td style='padding: 10px;'>" + str(key) + "</td><td style='padding: 10px;'>" + team_period[key] + "</td><td style='padding: 10px;'>$" + str(value) + "</td><td style='padding: 10px;'>$" + str(prev_cost) + "</td><td style='padding: 10px;'>" + str(percent_change) + "%</td></tr>"
         if debug: log("%s: %s" % (key, value))
 
     # what is the total cost for all teams?
     for team in team_costs:
         total_cost = total_cost + team_costs[team]
+        if team in team_prev_costs:
+            total_prev_cost = total_prev_cost + team_prev_costs[team]
 
-    table = table + "<tr><td style='padding: 10px;'>" + "" + "</td><td style='padding: 10px;'>" + "" + "</td><td style='padding: 10px;border-bottom:1pt solid black;border-top:1pt solid black;'><strong>$" + str(total_cost) + "</strong></td></tr>"
+    table = table + "<tr><td style='padding: 10px;'>" + "" + "</td><td style='padding: 10px;'>" + "" + "</td><td style='padding: 10px;border-bottom:1pt solid black;border-top:1pt solid black;'><strong>$" + str(total_cost) + "<td style='padding: 10px;border-bottom:1pt solid black;border-top:1pt solid black;'><strong>$" + str(total_prev_cost) +  "</strong></td></tr>"
     table = table + "</table>"
 
     return table

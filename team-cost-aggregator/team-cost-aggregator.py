@@ -28,7 +28,6 @@ def main(argv):
     parser.add_argument('-d','--debug', help='Enable debug output',action='store_true')
     parser.add_argument('-c','--config', help='Full path to a config file',required=True)
     parser.add_argument('-f','--folder', help='Folder containing the team cost summaries',required=True)
-    parser.add_argument('-r','--rm', help='Remove the data files when processed',action='store_true')
 
     args = parser.parse_args()
 
@@ -40,18 +39,22 @@ def main(argv):
         # Output the results
         output.outputResults(args.folder,configMap,args.debug)
 
-        if args.rm:
-            print "Removing all data files from " + args.folder
-            all_team_results_files = os.listdir(args.folder)
-            for team_result_file in all_team_results_files:
-                team_result_fullpath = os.path.join(args.folder,team_result_file)
+        # Move the current output files to previous so we can report percent change
+        print "Moving current output files to previous" + args.folder
+        all_team_results_files = os.listdir(args.folder)
+        for team_result_file in all_team_results_files:
+            team_result_fullpath = os.path.join(args.folder,team_result_file)
 
-                # Skip if we have a sub-dir
-                if os.path.isdir(team_result_fullpath):
-                    continue
-                else:
-                    print "Removing " + team_result_fullpath
-                    os.remove(team_result_fullpath)
+            # Skip if we have a sub-dir
+            if os.path.isdir(team_result_fullpath):
+                continue
+            elif str(team_result_fullpath).endswith(".prev"):
+                print "Skipping processing of " + team_result_fullpath
+                continue
+            else:
+                team_result_fullpath_prev = team_result_fullpath + ".prev"
+                print "Moving " + team_result_fullpath + " to " + team_result_fullpath_prev
+                os.rename(team_result_fullpath,team_result_fullpath_prev)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
