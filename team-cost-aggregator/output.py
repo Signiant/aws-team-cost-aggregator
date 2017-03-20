@@ -124,7 +124,7 @@ def getTeamTotals(configMap,folder,debug):
         if key in team_prev_costs:
             print "Previous costs found for " + str(key)
             prev_cost = team_prev_costs[key]
-            percent_change =  (value - prev_cost) /  value * 100
+            percent_change =  (value - prev_cost) /  prev_cost * 100
             percent_change = format(float(percent_change),'.0f')
 
         table = table + "<tr><td style='padding: 10px;'>" + str(key) + "</td><td style='padding: 10px;'>" + team_period[key] + "</td><td style='padding: 10px;'>$" + str(value) + "</td><td style='padding: 10px;'>$" + str(prev_cost) + "</td><td style='padding: 10px;'>" + str(percent_change) + "%</td></tr>"
