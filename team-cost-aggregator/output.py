@@ -120,12 +120,17 @@ def getTeamTotals(configMap,folder,debug):
     for key, value in sorted(team_costs.iteritems(), key=lambda (k,v): (v,k), reverse=True):
         prev_cost = ""
         percent_change = ""
+        print "Processing costs for " + str(key) + " with current cost " + str(value)
 
         if key in team_prev_costs:
-            print "Previous costs found for " + str(key)
+            print "Previous costs found for " + str(key) + " of " + str(team_prev_costs[key])
             prev_cost = team_prev_costs[key]
             percent_change =  (value - prev_cost) /  prev_cost * 100
             percent_change = format(float(percent_change),'.0f')
+            print "Percentage change for " + str(key) + " is " + str(percent_change)
+        else:
+            print "No previous costs found for team " + str(key)
+            percent_change = 0
 
         table = table + "<tr><td style='padding: 10px;'>" + str(key) + "</td><td style='padding: 10px;'>" + team_period[key] + "</td><td style='padding: 10px;'>$" + str(value) + "</td><td style='padding: 10px;'>$" + str(prev_cost) + "</td><td style='padding: 10px;'>" + str(percent_change) + "%</td></tr>"
         if debug: log("%s: %s" % (key, value))
